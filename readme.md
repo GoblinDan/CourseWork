@@ -1,0 +1,1 @@
+THis project was made as a courework for my first year in NSU Physics.
