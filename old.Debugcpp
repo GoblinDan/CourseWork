@@ -1,0 +1,137 @@
+#include <cmath>
+#include <cstdlib>
+#include <vector>
+#include <iostream>
+
+struct PhysicsData{
+    double Phi, Q, T;
+    PhysicsData(){
+        Phi = 0;
+        Q   = 0; 
+        T   = 0; 
+    }
+    PhysicsData(double _Phi, double _Q, double _T){
+        Phi = _Phi;
+        Q   = _Q;
+        T   = _T;
+    }
+};
+
+struct mathVector{
+    double x, y, z;
+    mathVector(){x = 0; y = 0; z = 0;}
+    mathVector(double _x, double _y, double _z){x = _x; y = _y; z = _z;}
+    mathVector operator-(const mathVector& b){
+        return mathVector(x - b.x, y - b.y, z - b.z);
+    }
+    mathVector operator+(const mathVector& b){
+        return mathVector(x + b.x, y + b.y, z + b.z);
+    }
+    bool operator<(const double l){
+        return (x*x + y*y + z*z) < (l*l);
+    }
+};
+
+struct Node{
+    PhysicsData Data;
+    mathVector r;
+    Node(float _x, float  _y){
+        r.x = _x; r.y = _y; r.z = 0;
+    }
+};
+
+struct Neigbours{
+    unsigned int NeigbourNum = 4;
+    Node** NeigbourArray;
+    Neigbours(unsigned int _NeigbourNum = 4){
+        NeigbourArray = (Node**)malloc(NeigbourNum * sizeof(Node*));
+    }
+};
+
+/*      Length, x, i
+        <-------------->
+w, y   ^ --------------
+i, j   | |            |
+d      | |            |
+t      | |            |
+h      v --------------
+*/
+class Grid{
+    private:
+        unsigned int Width; unsigned int Length;
+        
+    public:
+        Node* Array;
+        Node* NeigbourArray;
+
+        unsigned int GetIndex(unsigned int xC,unsigned int yC){
+            return xC * Width + yC;
+        }
+
+        Grid(unsigned int _Width, unsigned int _Length){
+            Width = _Width; Length = _Length;
+            Array = (Node*)malloc(Width*Length*sizeof(Node));
+            for(int i = 0; i < Length; i++){
+                for(int j = 0; j < Width; j++){
+                    Array[GetIndex(i,j)] = Node(i,j);
+                }
+            }
+        }
+
+        Neigbours getNeigbours(unsigned int xCoordinate, unsigned int yCoordinate){
+            Neigbours output;
+            output.NeigbourArray[0] = &Array[GetIndex(xCoordinate-1,yCoordinate)];
+            output.NeigbourArray[1] = &Array[GetIndex(xCoordinate+1,yCoordinate)];
+            output.NeigbourArray[2] = &Array[GetIndex(xCoordinate,  yCoordinate-1)];
+            output.NeigbourArray[3] = &Array[GetIndex(xCoordinate,  yCoordinate+1)];
+            return output;
+        }
+        Neigbours getNeigbours(unsigned int Index){
+            Neigbours output;
+            unsigned int xCoordinate = Index - Width * Index/Width;
+            unsigned int yCoordinate = Index%Width;
+            output.NeigbourArray[0] = &Array[GetIndex(xCoordinate-1,yCoordinate)];
+            output.NeigbourArray[1] = &Array[GetIndex(xCoordinate+1,yCoordinate)];
+            output.NeigbourArray[2] = &Array[GetIndex(xCoordinate,  yCoordinate-1)];
+            output.NeigbourArray[3] = &Array[GetIndex(xCoordinate,  yCoordinate+1)];
+            return output;
+        }
+
+        unsigned int GetSize(){return Width*Length;}
+
+};
+
+int main(){
+    Grid test(500, 500);
+    Neigbours color = test.getNeigbours(5, 5);
+    for(int i = 0; i < color.NeigbourNum; i++){
+        color.NeigbourArray[i]->Data.T = 5;
+    }
+
+    FILE *outFile;
+    char fileName[512];
+    sprintf(fileName,"CSV.csv");
+    outFile=fopen(fileName,"w+");
+    fprintf(outFile,"x;y;z;T;phi;Q\n");
+
+    for(int i = 0; i < test.GetSize(); i++){
+        if(std::pow((test.Array[i].r.x - 250),2) + std::pow((test.Array[i].r.y - 250),2) < 10000) test.Array[i].Data.T += 10;
+    }
+    /*
+    for(int i = 0; i < test.GetSize(); i++){
+        Neigbours Neigh = test.getNeigbours(i);
+        float avr = 0;
+        for(int j = 0; j < Neigh.NeigbourNum;j++){
+            avr += Neigh.NeigbourArray[j]->Data.T/Neigh.NeigbourNum;
+        }
+        test.Array[i].Data.T = avr;
+    }
+*/
+    for(int i = 0; i < test.GetSize(); i++){
+        fprintf(outFile,"%lf;%lf;%lf;%lf;%lf;%lf;\n",
+            test.Array[i].r.x,test.Array[i].r.y,test.Array[i].r.z,
+            test.Array[i].Data.T,test.Array[i].Data.Phi,test.Array[i].Data.Q);
+    }
+
+    return 0;
+}
