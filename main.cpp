@@ -5,7 +5,7 @@
 #include "Simulation.h"
 
 #define OutStep 1
-#define Ustart 1
+#define Ustart 1.0
 // todo: дырка в центре!
 // Подсчёт потенциалов, токов и нагрев с sigma = 6e7
 
@@ -74,14 +74,26 @@ int main(){
         }
         next = PhiStabilization(test);
         iter++;
-    } while(iter<10000);//std::abs(test.differencePhi(next)) > 2e-5);
+    } while(std::abs(test.differencePhi(next)) > 3e-6);//;
     std::cout<<"Finished stabilizing Phi"<<std::endl;
-    for (int i = 1; i < 101; i++){
-        test = NextStep(test, 1e-2);
+
+    mathVector vUp = mathVector(0,1e-3);
+    mathVector vDown = mathVector(0,-1e-3);
+
+    for (int i = 1; i < 21; i++){
+        test = NextStepForTemp(test, 1e-2);
+        test = Movement(test, 1e-2);
         //std::cout<<"Finished step: "<<i<<std::endl;
         
+        for(auto i : BorderUp){
+            test.Array[i].v = vUp;
+        }
+        for(auto i: BorderDown){
+            test.Array[i].v = vDown;
+        }
+
         if(i%OutStep == 0)outputInFile(test, i);
-        if(i%100 == 0)std::cout<<"Finished step: "<<i<<std::endl;
+        if(i%20 == 0)std::cout<<"Finished step: "<<i<<std::endl;
     }
     return 0;
 }

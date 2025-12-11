@@ -31,13 +31,13 @@ Grid PhiStabilization(Grid X){
     return next;
 }
 
-Grid NextStep(Grid current, double dt = 0){
+Grid NextStepForTemp(Grid current, double dt = 0){
     Grid next = current.copy();
     
     double dtactmin = dt;
 
     //Iteration
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(int i = 0; i < current.GetSize(); i++){
         double Rho = current.Array[i].Data.rho;
         double ci = current.Array[i].Data.c;
@@ -52,8 +52,8 @@ Grid NextStep(Grid current, double dt = 0){
             mathVector e = (current.Array[interactionTargets[j]].r - current.Array[i].r).normalise();
             double kij = current.Array[i].Data.k;
 
+            double Distance = (current.Array[interactionTargets[j]].r - current.Array[i].r)();
             double S = L / sqrt3;
-            double Distance = L;
             double V = sqrt3 * L / 2;
 
             TemperaturechangeFromNeighbours += kij/Rho/ci * (current.Array[interactionTargets[j]].Data.T - T) * S / Distance / V ;
@@ -81,5 +81,31 @@ Grid NextStep(Grid current, double dt = 0){
         if(dtact < dt) dtactmin = fmin(dtact,dtactmin);
     }
     if(dtactmin < dt )std::cout<< "Use recommended: " <<dtactmin<<std::endl;
+    return next;
+}
+
+Grid Movement(Grid current, double dt){
+    Grid next = current.copy();
+    
+    //#pragma omp parallel for
+    for(int i = 0; i < current.GetSize(); i++){
+        std::vector<unsigned int> interactionTargets = next.Array[i].NeigbourArray;
+        
+        mathVector Force = Zero;
+        for(auto NeighbourAddress : interactionTargets){
+            Node interTarget = current.Array[NeighbourAddress];
+            mathVector e = (interTarget.r - current.Array[i].r).normalise();
+            
+            double Distance = (interTarget.r - current.Array[i].r)();
+            double S = Distance / sqrt3;
+
+            Force = Force + e * (L - Distance) * interTarget.Borders[i].EYoung  * S / L;
+        }
+        double m = 1.0;
+        mathVector a = Force/m;
+        std::cout<<"Force of "<< current.Array[i].r.y <<" = "<<Force.y<<std::endl;
+        next.Array[i].v = current.Array[i].v + (a-current.Array[i].v*ALPHA)*dt;
+        next.Array[i].r+=next.Array[i].v*dt;
+    }   
     return next;
 }

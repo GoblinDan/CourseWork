@@ -5,6 +5,8 @@
 const double L = 0.1e-3; //Distance between nodes, twice the radius
 const double interactionRange = L*1.001;
 
+double ALPHA = 9.0 * L * L * 1e9;
+
 #define sqrt3 1.73205
 #define sqrt2 1.41421
 

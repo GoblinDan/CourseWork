@@ -49,7 +49,7 @@ struct mathVector{
 
 
 struct PhysicsData{
-    double Phi, T, rho, k, c, Q;
+    double Phi, T, rho, k, c, Q, density;
 
     PhysicsData(){
         Phi = 0;
@@ -59,6 +59,7 @@ struct PhysicsData{
         rho = 8960;
         k = 400;
         c = 385;
+        density = 8.96; //g*cm^3
     }
     PhysicsData(double _Phi, double _T){
         Phi = _Phi;
@@ -67,11 +68,12 @@ struct PhysicsData{
 };
 
 struct BorderData{
-    double sigma, Q;
+    double sigma, Q, EYoung;
     mathVector  I, E;
     BorderData(){
         I = Zero;
         sigma = 6e7; // standart is Cu
+        EYoung = 1e9;
         E = Zero;
         Q = 0;
     }
@@ -80,10 +82,12 @@ struct BorderData{
 struct Node{
     PhysicsData Data;
     mathVector r;
+    mathVector v;
     std::vector<unsigned int> NeigbourArray;
     std::unordered_map<unsigned int, BorderData> Borders;
     Node(float _x, float  _y){
         r.x = _x; r.y = _y; r.z = 0;
+        v.x = 0; v.y = 0; v.z = 0;
         Data = PhysicsData();
         NeigbourArray = std::vector<unsigned int>(0);
     }
