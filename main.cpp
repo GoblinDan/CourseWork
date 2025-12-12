@@ -53,14 +53,15 @@ int main(){
         if(test.Array[i].r.y > (Size*L*1.16 - 2*interactionRange)) BorderDown.push_back(i);
     }
 
+    //Electric potential approximation
+    for(int i = 0; i < test.GetSize(); i++){
+        test.Array[i].Data.Phi = test.Array[i].r.x/(0.01) * (Ustart/2) - Ustart/2;;
+    }
+    
     std::cout<<"Finished step: "<<0<<std::endl;
     outputInFile(test, 0);
     std::cout<<"Finished outputing step: "<<0<<std::endl;
 
-    //Electric potential approximation
-    for(int i = 0; i < test.GetSize(); i++){
-        test.Array[i].Data.Phi = test.Array[i].r.x * (Ustart/Size);
-    }
 
     Grid next = test.copy();
     int iter = 0;
@@ -74,7 +75,9 @@ int main(){
         }
         next = PhiStabilization(test);
         iter++;
-    } while(std::abs(test.differencePhi(next)) > 3e-6);//;
+        if(iter%100 == 0) std::cout<<std::abs(test.differencePhi(next))<<std::endl;
+    //} while(std::abs(test.differencePhi(next)) > 6e-7);//;
+    } while(iter < 1e3);
     std::cout<<"Finished stabilizing Phi"<<std::endl;
 
     mathVector vUp = mathVector(0,1e-3);
@@ -82,16 +85,17 @@ int main(){
 
     for (int i = 1; i < 21; i++){
         test = NextStepForTemp(test, 1e-2);
-        test = Movement(test, 1e-2);
+        for(int j = 0; j < 10000; j++) {
+            test = Movement(test, 1e-6);
         //std::cout<<"Finished step: "<<i<<std::endl;
-        
-        for(auto i : BorderUp){
-            test.Array[i].v = vUp;
+            
+            for(auto i : BorderUp){
+                test.Array[i].v = vUp;
+            }
+            for(auto i: BorderDown){
+                test.Array[i].v = vDown;
+            }
         }
-        for(auto i: BorderDown){
-            test.Array[i].v = vDown;
-        }
-
         if(i%OutStep == 0)outputInFile(test, i);
         if(i%20 == 0)std::cout<<"Finished step: "<<i<<std::endl;
     }

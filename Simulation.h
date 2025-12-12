@@ -103,7 +103,7 @@ Grid Movement(Grid current, double dt){
         }
         double m = 1.0;
         mathVector a = Force/m;
-        std::cout<<"Force of "<< current.Array[i].r.y <<" = "<<Force.y<<std::endl;
+        //std::cout<<"Force of "<< current.Array[i].r.y <<" = "<<Force.y<<std::endl;
         next.Array[i].v = current.Array[i].v + (a-current.Array[i].v*ALPHA)*dt;
         next.Array[i].r+=next.Array[i].v*dt;
     }   
