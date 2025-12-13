@@ -29,7 +29,7 @@ class Grid{
                     for(int j = 0; j < Width; j++){
                         double x = i * L + (0.5 * L * double((j % 2)==0));// x is just two radiuses
                         double y = j * L * sqrt3 / 2;
-                        if((mathVector(x,y) - mathVector(Length*L/2,Length*L/2)) > Length*L/4)
+                        if((mathVector(x,y) - mathVector(Length*L/2,Width*L/2/1.16)) > Width*L/4)
                             Array.push_back(Node(x, y));
                     }
                 }
