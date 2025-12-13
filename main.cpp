@@ -4,7 +4,7 @@
 
 #include "Simulation.h"
 
-#define OutStep 500
+#define OutStep 100
 #define Ustart 1.0
 // todo: дырка в центре!
 // Подсчёт потенциалов, токов и нагрев с sigma = 6e7
@@ -86,7 +86,7 @@ int main(){
     double time = 0;
     //double dt = 0.1*2*M_PI*sqrt(1/1e9/L);
     double dt = 1e-7;
-    for (int i = 1; i < 100000; i++){
+    for (int i = 1; i < 10000; i++){
         test = NextStepForTemp(test, dt);
         //for(int j = 0; j < 10000; j++) {
     //std::cout<<"Finished step: "<<i<<std::endl;
@@ -102,7 +102,7 @@ int main(){
         }
 
 
-        if(i%OutStep == 0) outputInFile(test, int(time*1e7));
+        if(i%OutStep == 0) outputInFile(test, int(time*1e6));
         if(i%500 == 0)std::cout<<"Finished step: "<<i<<std::endl;
     }
     return 0;

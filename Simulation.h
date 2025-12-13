@@ -94,7 +94,7 @@ inline double ForceLine(double inL, Node a)
     else
     {
         //ветка притяжения от L0 до LD
-        if(inL<L)
+        if(inL>L)
         {
             if(inL<LP)
             {
