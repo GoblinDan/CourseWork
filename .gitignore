@@ -7,3 +7,5 @@ Grid
 old.debugcpp
 CSV
 *.csv
+main
+CSV/Snapshot*.csv
