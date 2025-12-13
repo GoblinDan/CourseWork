@@ -3,6 +3,13 @@
 #include <omp.h>
 
 const double L = 0.1e-3; //Distance between nodes, twice the radius
+
+double LD=1.3*L;
+double LD2=LD*LD;
+
+double LP=1.1*L;
+
+
 const double interactionRange = L*1.001;
 
 double ALPHA = 9.0 * L * L * 1e9;

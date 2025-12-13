@@ -4,7 +4,7 @@
 
 #include "Simulation.h"
 
-#define OutStep 1
+#define OutStep 500
 #define Ustart 1.0
 // todo: дырка в центре!
 // Подсчёт потенциалов, токов и нагрев с sigma = 6e7
@@ -30,13 +30,13 @@ void outputInFile(Grid target, int num = 0){
     char fileName[512];
     sprintf(fileName,"CSV/Snapshot%04i.csv",num);
     outFile=fopen(fileName,"w+");
-    fprintf(outFile,"x;y;z;T;phi;Q;Ex;Ey;Ez\n");
+    fprintf(outFile,"x;y;z;T;phi;Q;vx;vy;vz\n");
 
     for(int i = 0; i < target.GetSize(); i++){
         fprintf(outFile,"%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;\n",
             target.Array[i].r.x,target.Array[i].r.y,target.Array[i].r.z,
             target.Array[i].Data.T,target.Array[i].Data.Phi,target.Array[i].Data.Q,
-            0, 0, 0);
+            target.Array[i].v.x, target.Array[i].v.y, target.Array[i].v.z);
     }
 }
 
@@ -50,12 +50,12 @@ int main(){
         if(test.Array[i].r.x < interactionRange) BorderLeft.push_back(i);
         if(test.Array[i].r.x > (Size*L - 2*interactionRange)) BorderRight.push_back(i);
         if(test.Array[i].r.y < interactionRange) BorderUp.push_back(i);
-        if(test.Array[i].r.y > (Size*L*1.16 - 2*interactionRange)) BorderDown.push_back(i);
+        if(test.Array[i].r.y > (Size*L - 2*interactionRange)) BorderDown.push_back(i);
     }
 
     //Electric potential approximation
     for(int i = 0; i < test.GetSize(); i++){
-        test.Array[i].Data.Phi = test.Array[i].r.x/(0.01) * (Ustart/2) - Ustart/2;;
+        test.Array[i].Data.Phi = test.Array[i].r.x/(0.01) * (Ustart) - Ustart/2;;
     }
     
     std::cout<<"Finished step: "<<0<<std::endl;
@@ -75,29 +75,35 @@ int main(){
         }
         next = PhiStabilization(test);
         iter++;
-        if(iter%100 == 0) std::cout<<std::abs(test.differencePhi(next))<<std::endl;
+        //if(iter%100 == 0) std::cout<<std::abs(test.differencePhi(next))<<std::endl;
     //} while(std::abs(test.differencePhi(next)) > 6e-7);//;
-    } while(iter < 1e3);
+    } while(iter < 5e3);
     std::cout<<"Finished stabilizing Phi"<<std::endl;
 
-    mathVector vUp = mathVector(0,1e-3);
-    mathVector vDown = mathVector(0,-1e-3);
+    mathVector vUp = mathVector(0,-5e-3);
+    mathVector vDown = mathVector(0,5e-3);
 
-    for (int i = 1; i < 21; i++){
-        test = NextStepForTemp(test, 1e-2);
-        for(int j = 0; j < 10000; j++) {
-            test = Movement(test, 1e-6);
-        //std::cout<<"Finished step: "<<i<<std::endl;
-            
-            for(auto i : BorderUp){
-                test.Array[i].v = vUp;
-            }
-            for(auto i: BorderDown){
-                test.Array[i].v = vDown;
-            }
+    double time = 0;
+    //double dt = 0.1*2*M_PI*sqrt(1/1e9/L);
+    double dt = 1e-7;
+    for (int i = 1; i < 100000; i++){
+        test = NextStepForTemp(test, dt);
+        //for(int j = 0; j < 10000; j++) {
+    //std::cout<<"Finished step: "<<i<<std::endl;
+        test = Movement(test, dt);
+        //}
+        time+=dt;
+
+        for(auto j : BorderUp){
+            test.Array[j].v = vUp;
         }
-        if(i%OutStep == 0)outputInFile(test, i);
-        if(i%20 == 0)std::cout<<"Finished step: "<<i<<std::endl;
+        for(auto j: BorderDown){
+            test.Array[j].v = vDown;
+        }
+
+
+        if(i%OutStep == 0) outputInFile(test, int(time*1e7));
+        if(i%500 == 0)std::cout<<"Finished step: "<<i<<std::endl;
     }
     return 0;
 }

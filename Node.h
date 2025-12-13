@@ -83,11 +83,13 @@ struct Node{
     PhysicsData Data;
     mathVector r;
     mathVector v;
+    mathVector a;
     std::vector<unsigned int> NeigbourArray;
     std::unordered_map<unsigned int, BorderData> Borders;
     Node(float _x, float  _y){
         r.x = _x; r.y = _y; r.z = 0;
         v.x = 0; v.y = 0; v.z = 0;
+        a.x = 0; a.y = 0; a.z = 0;
         Data = PhysicsData();
         NeigbourArray = std::vector<unsigned int>(0);
     }

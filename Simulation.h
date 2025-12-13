@@ -84,6 +84,41 @@ Grid NextStepForTemp(Grid current, double dt = 0){
     return next;
 }
 
+inline double ForceLine(double inL, Node a)
+{
+    if(inL<L)
+    {
+        //ветка отталкивания от 0 до L0
+        return a.Borders[0].EYoung*L*(inL-L);//repulsiveK*L0*(inL/L0-1); repulsiveK*L0=repulsiveE
+    }
+    else
+    {
+        //ветка притяжения от L0 до LD
+        if(inL<L)
+        {
+            if(inL<LP)
+            {
+                //участок роста от L0 до LP
+                return a.Borders[0].EYoung*L*(inL-L);//attractiveK*L0*(inL/L0-1); attractiveK*L0=attractiveE
+            }
+            else
+            {
+                //участок спада от LP до LD
+                // Плавный спад (кубический)
+                //                               double t = (inL - LP) / (LD_T - LP);
+                //                               return attractiveK * (LP - L0) * (1 - 3*t*t + 2*t*t*t); ПОДУМАТЬ!!!
+
+                return a.Borders[0].EYoung*(LP-L)*(1-(inL-LP)/(LD-LP));//return attractiveK*L0*(LP/L0-1)*(1-(inL/LP-1)/(LD/LP-1)) attractiveK*L0=attractiveE
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    return 0;
+}
+
 Grid Movement(Grid current, double dt){
     Grid next = current.copy();
     
@@ -99,13 +134,15 @@ Grid Movement(Grid current, double dt){
             double Distance = (interTarget.r - current.Array[i].r)();
             double S = Distance / sqrt3;
 
-            Force = Force + e * (L - Distance) * interTarget.Borders[i].EYoung  * S / L;
+            if(L != 0) Force = Force + e*(-ForceLine(Distance, current.Array[i])/L);
         }
         double m = 1.0;
         mathVector a = Force/m;
         //std::cout<<"Force of "<< current.Array[i].r.y <<" = "<<Force.y<<std::endl;
-        next.Array[i].v = current.Array[i].v + (a-current.Array[i].v*ALPHA)*dt;
-        next.Array[i].r+=next.Array[i].v*dt;
+        next.Array[i].v  = current.Array[i].v + (a-current.Array[i].v*ALPHA)*dt;
+        //std::cout<<"Speed "<<next.Array[i].v.y<<std::endl;
+        next.Array[i].r  = current.Array[i].r + current.Array[i].v*dt;
+        //std::cout<<"Speed "<<next.Array[i].r.y<<std::endl;
     }   
     return next;
 }
